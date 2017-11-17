@@ -1,10 +1,12 @@
-from mass_api_client import ConnectionManager
-from dictionarys import Requests, Scheduled, Services
-from docker import types
-import docker
-import config
-import time
 import os
+import time
+
+import config
+import docker
+from docker import types
+from mass_api_client import ConnectionManager
+
+from mass_autoscaler.dictionarys import Requests, Scheduled, Services
 
 
 class Manager:
