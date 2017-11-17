@@ -5,7 +5,7 @@ client = docker.from_env()
 low_client = docker.APIClient()
 
 
-service = low_client.services(filters={'id': 'ncjg26qpluge'})[0]
+service = low_client.services(filters={'id': <SERVICE ID>})[0]
 task_template = service['Spec']['TaskTemplate']
 curr_replicas = service['Spec']['Mode']['Replicated']['Replicas']
 curr_labels = service["Spec"]["Labels"]
