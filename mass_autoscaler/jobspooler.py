@@ -1,12 +1,10 @@
-import os
-import time
-
-import config
-import docker
-from docker import types
 from mass_api_client import ConnectionManager
-
 from mass_autoscaler.dictionarys import Requests, Scheduled, Services
+from docker import types
+import mass_autoscaler.config as config
+import docker
+import time
+import os
 
 
 class Manager:
@@ -30,21 +28,21 @@ class Manager:
     def _update_attributes(self, service_info, request_dict, scheduled_dict):
         #TODO hide service info in dictionary.py an create methods to work on this ressources
         self.replicas = int(service_info[self.id]['replicas'])
-        self.anal_sys = service_info[self.id]['anal_system']
-        self.min_inst = int(service_info[self.id]['min_inst'])
-        self.max_inst = int(service_info[self.id]['max_inst'])
-        self.lazyness = int(service_info[self.id]['lazyness'])
-        self.start_demand = int(service_info[self.id]['start_demand'])
+        self.anal_sys = service_info[self.id]['com.mass.anal_system']
+        self.min_inst = int(service_info[self.id]['com.mass.min_inst'])
+        self.max_inst = int(service_info[self.id]['com.mass.max_inst'])
+        self.lazyness = int(service_info[self.id]['com.mass.laziness'])
+        self.start_demand = int(service_info[self.id]['com.mass.start_demand'])
         if self._history is None:
             self._history = [self.start_demand] * self.lazyness
-        elif len(self._history) != int(service_info[self.id]['lazyness']):
+        elif len(self._history) != int(service_info[self.id]['com.mass.laziness']):
             self._history = [self.start_demand] * self.lazyness
-        if service_info[self.id]['anal_system'] in Requests.request_dict:
-            self.requests = request_dict[service_info[self.id]['anal_system']]
+        if service_info[self.id]['com.mass.anal_system'] in Requests.request_dict:
+            self.requests = request_dict[service_info[self.id]['com.mass.anal_system']]
         else:
             self.requests = 0
-        if service_info[self.id]['anal_system'] in Scheduled.scheduled_dict:
-            self.scheduled = scheduled_dict[service_info[self.id]['anal_system']]
+        if service_info[self.id]['com.mass.anal_system'] in Scheduled.scheduled_dict:
+            self.scheduled = scheduled_dict[service_info[self.id]['com.mass.anal_system']]
         else:
             self.scheduled = 0
 

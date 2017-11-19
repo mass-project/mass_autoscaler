@@ -1,2 +1,5 @@
+#The address of the Server:
 server_addr = 'http://localhost:8000/api/'
-scale_interval = 10
+
+#The interval in which the current demand is calculated and applied.
+scale_interval = 30

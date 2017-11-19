@@ -91,7 +91,7 @@ class Services:
         ids = []
         all_instances = AnalysisSystemInstance.all()
         for service_id in Services.service_dict:
-            if 'anal_system' in Services.service_dict[service_id]:
+            if 'com.mass.anal_system' in Services.service_dict[service_id]:
                 if service_id not in ids:
                     ids.append(service_id)
         return ids
