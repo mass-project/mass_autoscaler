@@ -68,6 +68,30 @@ class Services:
     _instance_dict = {}
 
     @staticmethod
+    def get_replicas(service_id):
+        return int(Services.service_dict[service_id]['replicas'])
+
+    @staticmethod
+    def get_anal_system(service_id):
+        return Services.service_dict[service_id]['com.mass.anal_system']
+
+    @staticmethod
+    def get_min_instances(service_id):
+        return int(Services.service_dict[service_id]['com.mass.min_inst'])
+
+    @staticmethod
+    def get_max_instances(service_id):
+        return int(Services.service_dict[service_id]['com.mass.max_inst'])
+
+    @staticmethod
+    def get_laziness(service_id):
+        return int(Services.service_dict[service_id]['com.mass.laziness'])
+
+    @staticmethod
+    def get_start_demand(service_id):
+        return int(Services.service_dict[service_id]['com.mass.start_demand'])
+
+    @staticmethod
     def update_dict(client, low_client):
         Services.service_dict = {}
         id_list = []
@@ -89,7 +113,6 @@ class Services:
         #TODO it creates a list of all services with 'anal_system' as tag but doesnt check if the analysis system is connected with the server
         #TODO it only checks if label anal_sys exists. Maybe an additional nicer named label is better
         ids = []
-        all_instances = AnalysisSystemInstance.all()
         for service_id in Services.service_dict:
             if 'com.mass.anal_system' in Services.service_dict[service_id]:
                 if service_id not in ids:

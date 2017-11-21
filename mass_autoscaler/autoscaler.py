@@ -18,7 +18,7 @@ class Manager:
         self.anal_sys = None
         self.min_inst = None
         self.max_inst = None
-        self.lazyness = None
+        self.laziness = None
         self.requests = None
         self.scheduled = None
         self.start_demand = None
@@ -26,23 +26,21 @@ class Manager:
         self.replicas = None
 
     def _update_attributes(self, service_info, request_dict, scheduled_dict):
-        #TODO hide service info in dictionary.py an create methods to work on this ressources
-        self.replicas = int(service_info[self.id]['replicas'])
-        self.anal_sys = service_info[self.id]['com.mass.anal_system']
-        self.min_inst = int(service_info[self.id]['com.mass.min_inst'])
-        self.max_inst = int(service_info[self.id]['com.mass.max_inst'])
-        self.lazyness = int(service_info[self.id]['com.mass.laziness'])
-        self.start_demand = int(service_info[self.id]['com.mass.start_demand'])
-        if self._history is None:
-            self._history = [self.start_demand] * self.lazyness
-        elif len(self._history) != int(service_info[self.id]['com.mass.laziness']):
-            self._history = [self.start_demand] * self.lazyness
-        if service_info[self.id]['com.mass.anal_system'] in Requests.request_dict:
-            self.requests = request_dict[service_info[self.id]['com.mass.anal_system']]
+        self.replicas = Services.get_replicas(self.id)
+        self.anal_sys = Services.get_anal_system(self.id)
+        self.min_inst = Services.get_min_instances(self.id)
+        self.max_inst = Services.get_max_instances(self.id)
+        self.laziness = Services.get_laziness(self.id)
+        self.start_demand = Services.get_start_demand(self.id)
+        if self._history is None or len(self._history) != Services.get_laziness(self.id):
+            self._history = [self.start_demand] * self.laziness
+
+        if self.anal_sys in Requests.request_dict:
+            self.requests = request_dict[self.anal_sys]
         else:
             self.requests = 0
-        if service_info[self.id]['com.mass.anal_system'] in Scheduled.scheduled_dict:
-            self.scheduled = scheduled_dict[service_info[self.id]['com.mass.anal_system']]
+        if self.anal_sys in Scheduled.scheduled_dict:
+            self.scheduled = scheduled_dict[self.anal_sys]
         else:
             self.scheduled = 0
 
@@ -55,7 +53,7 @@ class Manager:
         elif self.demand > self.max_inst:
             self.demand = self.max_inst
         self._iterator += 1
-        if self._iterator >= self.lazyness:
+        if self._iterator >= self.laziness:
             self._iterator = 0
 
 
@@ -133,7 +131,7 @@ class JobSpooler:
                 print('No running Docker-Services with MASS Analysis Systems found.')
             for manager in self.managers:
                 print('servID:', manager.id, 'anaSys:', manager.anal_sys, 'min:', manager.min_inst, 'max:', manager.max_inst, 'req:',
-                      manager.requests, 'sched:', manager.scheduled, 'lazy:', manager.lazyness, 'startDem:',
+                      manager.requests, 'sched:', manager.scheduled, 'lazy:', manager.laziness, 'startDem:',
                       manager.start_demand, 'repl:', manager.replicas, 'hist:', manager._history, 'dem:', manager.demand)
             #TODO
             time.sleep(config.scale_interval)
