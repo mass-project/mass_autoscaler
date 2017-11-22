@@ -1,4 +1,4 @@
-from mass_api_client.resources import AnalysisSystemInstance, ScheduledAnalysis, AnalysisRequest, AnalysisSystem
+from mass_api_client.resources import AnalysisSystemInstance, ScheduledAnalysis, AnalysisRequest
 
 
 class Requests:
@@ -20,6 +20,7 @@ class Requests:
             return Requests.request_dict[name]
         return 0
 
+
     #creates a dict of all analyse systems and their counts of scheduled analysis
     #offline systems are ignored
 class Scheduled:
@@ -27,11 +28,8 @@ class Scheduled:
     _instance_dict = {}
     scheduled_dict = {}
 
-
     @staticmethod
     def update_dict():
-
-        sysall = AnalysisSystem.all()
 
         Scheduled._all_scheduled_dict = {}
         Scheduled._instance_dict = {}
@@ -58,11 +56,16 @@ class Scheduled:
                     Scheduled.scheduled_dict[Scheduled._instance_dict[instance_address]] += \
                     Scheduled._all_scheduled_dict[instance_address]
 
-
-
+    @staticmethod
+    def scheduled_for_system(name):
+        if name in Scheduled.scheduled_dict:
+            return Scheduled.scheduled_dict[name]
+        return 0
 
 
 class Services:
+    client = None
+    low_client = None
     #service_dict: {id1: {label1: .., label2: ...} id2: label1: ..._}
     service_dict = {}
     _instance_dict = {}
@@ -92,13 +95,13 @@ class Services:
         return int(Services.service_dict[service_id]['com.mass.start_demand'])
 
     @staticmethod
-    def update_dict(client, low_client):
+    def update_dict():
         Services.service_dict = {}
         id_list = []
-        for service in client.services.list():
+        for service in Services.client.services.list():
             id_list.append(service.id)
         for id in id_list:
-            service_info = low_client.inspect_service(id)['Spec']
+            service_info = Services.low_client.inspect_service(id)['Spec']
 
             try:
                 """Services.service_dict[id] = low_client.inspect_service(id)['Spec']['Labels']
@@ -109,7 +112,7 @@ class Services:
                 pass
 
     @staticmethod
-    def get_ids_matching_to_run_instances(client, low_client):
+    def get_ids_matching_to_run_instances():
         #TODO it creates a list of all services with 'anal_system' as tag but doesnt check if the analysis system is connected with the server
         #TODO it only checks if label anal_sys exists. Maybe an additional nicer named label is better
         ids = []
