@@ -1,4 +1,34 @@
 from mass_api_client.resources import AnalysisSystemInstance, ScheduledAnalysis, AnalysisRequest
+import configparser
+
+
+class Configuration:
+    config = None
+
+    @staticmethod
+    def update_config():
+        Configuration.config = configparser.ConfigParser()
+        Configuration.config.read('config.ini')
+        if not Configuration.config.has_section('Default Values'):
+            Configuration.config.add_section('Default Values')
+        if not Configuration.config.has_option('Default Values', 'Scale Interval'):
+            Configuration.config.set('Default Values', 'Scale Interval', '15')
+        if not Configuration.config.has_option('Default Values', 'Default Minimum'):
+            Configuration.config.set('Default Values', 'Default Minimum', '3')
+        if not Configuration.config.has_option('Default Values', 'Default Maximum'):
+            Configuration.config.set('Default Values', 'Default Maximum', '15')
+        if not Configuration.config.has_option('Default Values', 'Default Start Demand'):
+            Configuration.config.set('Default Values',  'Default Start Demand', '3')
+        if not Configuration.config.has_option('Default Values', 'Default Laziness'):
+            Configuration.config.set('Default Values', 'Default Laziness', '20')
+        if not Configuration.config.has_section('Basic Properties'):
+            Configuration.config.add_section('Basic Properties')
+        if not Configuration.config.has_option('Basic Properties', 'Server Address'):
+            Configuration.config.set('Basic Properties', 'Server Address', 'http://localhost:8000/api/')
+        if not Configuration.config.has_option('Basic Properties', 'Scale Interval'):
+            Configuration.config.set('Basic Properties', 'Scale Interval', '30')
+        with open('config.ini', 'w') as configfile:
+            Configuration.config.write(configfile)
 
 
 class Requests:
@@ -30,7 +60,6 @@ class Scheduled:
 
     @staticmethod
     def update_dict():
-
         Scheduled._all_scheduled_dict = {}
         Scheduled._instance_dict = {}
         Scheduled.scheduled_dict = {}
@@ -68,44 +97,50 @@ class Services:
     low_client = None
     #service_dict: {id1: {label1: .., label2: ...} id2: label1: ..._}
     service_dict = {}
-    _instance_dict = {}
-
-    @staticmethod
-    def get_replicas(service_id):
-        return int(Services.service_dict[service_id]['replicas'])
 
     @staticmethod
     def get_anal_system(service_id):
         return Services.service_dict[service_id]['com.mass.anal_system']
 
     @staticmethod
+    def get_replicas(service_id):
+        return int(Services.service_dict[service_id]['replicas'])
+
+    @staticmethod
     def get_min_instances(service_id):
-        return int(Services.service_dict[service_id]['com.mass.min_inst'])
+        if 'com.mass.min_inst' in Services.service_dict[service_id]:
+            return int(Services.service_dict[service_id]['com.mass.min_inst'])
+        return Configuration.config.getint('Default Values', 'default minimum')
 
     @staticmethod
     def get_max_instances(service_id):
-        return int(Services.service_dict[service_id]['com.mass.max_inst'])
+        if 'com.mass.max_inst' in Services.service_dict[service_id]:
+            return int(Services.service_dict[service_id]['com.mass.max_inst'])
+        return Configuration.config.getint('Default Values', 'default maximum')
 
     @staticmethod
     def get_laziness(service_id):
-        return int(Services.service_dict[service_id]['com.mass.laziness'])
+        if 'com.mass.laziness' in Services.service_dict[service_id]:
+            return int(Services.service_dict[service_id]['com.mass.laziness'])
+        return Configuration.config.getint('Default Values', 'default laziness')
 
     @staticmethod
     def get_start_demand(service_id):
-        return int(Services.service_dict[service_id]['com.mass.start_demand'])
+        if 'com.mass.start_demand' in Services.service_dict[service_id]:
+            return int(Services.service_dict[service_id]['com.mass.start_demand'])
+        return Configuration.config.getint('Default Values', 'default start demand')
 
     @staticmethod
     def update_dict():
         Services.service_dict = {}
         id_list = []
-        for service in Services.client.services.list():
+        _services = Services.client.services.list()
+        for service in _services:
             id_list.append(service.id)
         for id in id_list:
             service_info = Services.low_client.inspect_service(id)['Spec']
 
             try:
-                """Services.service_dict[id] = low_client.inspect_service(id)['Spec']['Labels']
-                print('uno', Services.service_dict[id])"""
                 Services.service_dict[id] = service_info['Labels']
                 Services.service_dict[id]['replicas'] = service_info['Mode']['Replicated']['Replicas']
             except KeyError:
@@ -113,11 +148,15 @@ class Services:
 
     @staticmethod
     def get_ids_matching_to_run_instances():
-        #TODO it creates a list of all services with 'anal_system' as tag but doesnt check if the analysis system is connected with the server
-        #TODO it only checks if label anal_sys exists. Maybe an additional nicer named label is better
         ids = []
         for service_id in Services.service_dict:
             if 'com.mass.anal_system' in Services.service_dict[service_id]:
                 if service_id not in ids:
                     ids.append(service_id)
         return ids
+
+
+def update_database():
+    Requests.update_dict()
+    Scheduled.update_dict()
+    Services.update_dict()

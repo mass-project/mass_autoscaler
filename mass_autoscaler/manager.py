@@ -1,4 +1,4 @@
-from mass_autoscaler.dictionarys import Requests, Scheduled, Services
+from mass_autoscaler.database import Requests, Scheduled, Services
 from docker import types
 
 
@@ -51,9 +51,15 @@ class Manager:
         if self._iterator >= self.laziness:
             self._iterator = 0
 
+    def debug_manager(self):
+        print('servID:', self.id, 'anaSys:', self.anal_sys, 'min:', self.min_inst, 'max:',
+              self.max_inst, 'req:',
+              self.requests, 'sched:', self.scheduled, 'lazy:', self.laziness, 'startDem:',
+              self.start_demand, 'repl:', self.replicas, 'hist:', self._history, 'dem:', self.demand)
+
     def scale_service(self):
         # TODO Optimierung: ganze Liste der Services cachen, filtern und die einzelnen Manager den jew.Service übergeben
-        # TODO in dictionarys.py auslagern
+        # TODO in database.py auslagern
         # TODO exception tritt auf wenn service im falschen moment von aussen beendet wird. service = low_client.services(filters={'id': self.id})[0] out of range + weitere zeilen müssen exceptions abgefangen werden
         """self._update_attributes()
         self._calculate_demand()
@@ -76,3 +82,4 @@ class Manager:
         Services.low_client.update_service(service["ID"], version=service["Version"]["Index"],
                                            task_template=task_template,name=service["Spec"]["Name"],
                                            labels=curr_labels, mode=mode)
+        return self
