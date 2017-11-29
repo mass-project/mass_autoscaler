@@ -55,7 +55,6 @@ class Autoscaler:
                     self.managers = p.map(wrap_scale, self.managers)
                     p.map(wrap_debug, self.managers)
 
-            # TODO sleep :/
             time.sleep(Configuration.config.getint('Basic Properties', 'Scale Interval'))
 
 

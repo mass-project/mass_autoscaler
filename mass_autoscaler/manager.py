@@ -40,6 +40,7 @@ class Manager:
             self.scheduled = 0
 
     def _calculate_demand(self):
+        #placeholder
         self._history[self._iterator] = self.requests + self.replicas + self.scheduled
         self.demand = int(sum(self._history) / len(self._history))
 
@@ -80,6 +81,6 @@ class Manager:
         curr_labels = service["Spec"]["Labels"]
         mode = types.ServiceMode(mode='replicated', replicas=curr_replicas)
         Services.low_client.update_service(service["ID"], version=service["Version"]["Index"],
-                                           task_template=task_template,name=service["Spec"]["Name"],
+                                           task_template=task_template, name=service["Spec"]["Name"],
                                            labels=curr_labels, mode=mode)
         return self

@@ -100,57 +100,48 @@ class Services:
 
     @staticmethod
     def get_anal_system(service_id):
-        return Services.service_dict[service_id]['com.mass.anal_system']
+        return Services.service_dict[service_id]['Labels']['com.mass.anal_system']
 
     @staticmethod
     def get_replicas(service_id):
-        return int(Services.service_dict[service_id]['replicas'])
+        return int(Services.service_dict[service_id]['Mode']['Replicated']['Replicas'])
 
     @staticmethod
     def get_min_instances(service_id):
-        if 'com.mass.min_inst' in Services.service_dict[service_id]:
-            return int(Services.service_dict[service_id]['com.mass.min_inst'])
+        if 'com.mass.min_inst' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.min_inst'])
         return Configuration.config.getint('Default Values', 'default minimum')
 
     @staticmethod
     def get_max_instances(service_id):
-        if 'com.mass.max_inst' in Services.service_dict[service_id]:
-            return int(Services.service_dict[service_id]['com.mass.max_inst'])
+        if 'com.mass.max_inst' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.max_inst'])
         return Configuration.config.getint('Default Values', 'default maximum')
 
     @staticmethod
     def get_laziness(service_id):
-        if 'com.mass.laziness' in Services.service_dict[service_id]:
-            return int(Services.service_dict[service_id]['com.mass.laziness'])
+        if 'com.mass.laziness' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.laziness'])
         return Configuration.config.getint('Default Values', 'default laziness')
 
     @staticmethod
     def get_start_demand(service_id):
-        if 'com.mass.start_demand' in Services.service_dict[service_id]:
-            return int(Services.service_dict[service_id]['com.mass.start_demand'])
+        if 'com.mass.start_demand' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.start_demand'])
         return Configuration.config.getint('Default Values', 'default start demand')
 
     @staticmethod
     def update_dict():
         Services.service_dict = {}
-        id_list = []
         _services = Services.client.services.list()
         for service in _services:
-            id_list.append(service.id)
-        for id in id_list:
-            service_info = Services.low_client.inspect_service(id)['Spec']
-
-            try:
-                Services.service_dict[id] = service_info['Labels']
-                Services.service_dict[id]['replicas'] = service_info['Mode']['Replicated']['Replicas']
-            except KeyError:
-                pass
+            Services.service_dict[service.id] = service.attrs['Spec']
 
     @staticmethod
     def get_ids_matching_to_run_instances():
         ids = []
         for service_id in Services.service_dict:
-            if 'com.mass.anal_system' in Services.service_dict[service_id]:
+            if 'com.mass.anal_system' in Services.service_dict[service_id]['Labels']:
                 if service_id not in ids:
                     ids.append(service_id)
         return ids
