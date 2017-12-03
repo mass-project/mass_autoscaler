@@ -63,7 +63,6 @@ class Scheduled:
         Scheduled._all_scheduled_dict = {}
         Scheduled._instance_dict = {}
         Scheduled.scheduled_dict = {}
-        Scheduled.url_list = []
         all_scheduled = ScheduledAnalysis.all()
         all_instances = AnalysisSystemInstance.all()
 
@@ -95,7 +94,7 @@ class Scheduled:
 class Services:
     client = None
     low_client = None
-    #service_dict: {id1: {label1: .., label2: ...} id2: label1: ..._}
+    # service_dict: {id1: {label1: .., label2: ...} id2: label1: ..._}
     service_dict = {}
 
     @staticmethod
