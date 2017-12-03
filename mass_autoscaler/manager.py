@@ -1,5 +1,6 @@
-from mass_autoscaler.database import Requests, Scheduled, Services
 from docker import types
+
+from database import Requests, Scheduled, Services
 
 
 class Manager:

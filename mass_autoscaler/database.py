@@ -9,10 +9,16 @@ class Configuration:
     def update_config():
         Configuration.config = configparser.ConfigParser()
         Configuration.config.read('config.ini')
+        if not Configuration.config.has_section('Basic Properties'):
+            Configuration.config.add_section('Basic Properties')
+        if not Configuration.config.has_option('Basic Properties', 'Server Address'):
+            Configuration.config.set('Basic Properties', 'Server Address', 'http://localhost:8000/api/')
+        if not Configuration.config.has_option('Basic Properties', 'API KEY'):
+            Configuration.config.set('Basic Properties', 'API KEY', '<api key>')
+        if not Configuration.config.has_option('Basic Properties', 'Scale Interval'):
+            Configuration.config.set('Basic Properties', 'Scale Interval', '30')
         if not Configuration.config.has_section('Default Values'):
             Configuration.config.add_section('Default Values')
-        if not Configuration.config.has_option('Default Values', 'Scale Interval'):
-            Configuration.config.set('Default Values', 'Scale Interval', '15')
         if not Configuration.config.has_option('Default Values', 'Default Minimum'):
             Configuration.config.set('Default Values', 'Default Minimum', '3')
         if not Configuration.config.has_option('Default Values', 'Default Maximum'):
@@ -21,12 +27,6 @@ class Configuration:
             Configuration.config.set('Default Values',  'Default Start Demand', '3')
         if not Configuration.config.has_option('Default Values', 'Default Laziness'):
             Configuration.config.set('Default Values', 'Default Laziness', '20')
-        if not Configuration.config.has_section('Basic Properties'):
-            Configuration.config.add_section('Basic Properties')
-        if not Configuration.config.has_option('Basic Properties', 'Server Address'):
-            Configuration.config.set('Basic Properties', 'Server Address', 'http://localhost:8000/api/')
-        if not Configuration.config.has_option('Basic Properties', 'Scale Interval'):
-            Configuration.config.set('Basic Properties', 'Scale Interval', '30')
         with open('config.ini', 'w') as configfile:
             Configuration.config.write(configfile)
 

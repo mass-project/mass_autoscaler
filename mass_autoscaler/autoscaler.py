@@ -1,6 +1,6 @@
 from mass_api_client import ConnectionManager
-from mass_autoscaler.database import Services, Configuration, update_database
-from mass_autoscaler.manager import Manager
+from database import Services, Configuration, update_database
+from manager import Manager
 from multiprocessing import Pool
 import docker
 import time
@@ -38,8 +38,9 @@ class Autoscaler:
             self.managers.append(Manager(ident))
 
     def scale(self):
-        ConnectionManager().register_connection('default', os.environ.get('API_KEY', None),
-                                                Configuration.config['Basic Properties']['server address'])
+        api_key = os.environ.get('MASS_API_KEY', Configuration.config.get('Basic Properties', 'api key'))
+        server_address = os.environ.get('MASS_SERVER_ADDRESS', Configuration.config.get('Basic Properties', 'server address'))
+        ConnectionManager().register_connection('default', api_key, server_address)
         Services.client = docker.from_env()
         Services.low_client = docker.APIClient()
 
