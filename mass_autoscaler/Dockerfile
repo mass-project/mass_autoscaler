@@ -9,6 +9,6 @@ ADD . /
 ENTRYPOINT python3 autoscaler.py
 
 ## download from MASS repository and create image ##
-#RUN git clone https://github.com/mass-project/mass_autoscaler.git
+#RUN git clone https://github.com/mass-project/mass_autoscaler.git -b master
 #WORKDIR mass_autoscaler/mass_autoscaler
 #ENTRYPOINT python3 autoscaler.py
