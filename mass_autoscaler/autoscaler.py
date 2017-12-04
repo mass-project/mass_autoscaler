@@ -39,7 +39,8 @@ class Autoscaler:
 
     def scale(self):
         api_key = os.environ.get('MASS_API_KEY', Configuration.config.get('Basic Properties', 'api key'))
-        server_address = os.environ.get('MASS_SERVER_ADDRESS', Configuration.config.get('Basic Properties', 'server address'))
+        server_address = os.environ.get('MASS_SERVER_ADDRESS', Configuration.config.get('Basic Properties',
+                                                                                        'server address'))
         ConnectionManager().register_connection('default', api_key, server_address)
         Services.client = docker.from_env()
         Services.low_client = docker.APIClient()
@@ -47,14 +48,15 @@ class Autoscaler:
         while 1:
             update_database()
             self._create_or_kill_managers()
-
-            print(time.asctime(time.localtime(time.time())))
+            if Configuration.config.getboolean('Basic Properties', 'Debug'):
+                print(time.asctime(time.localtime(time.time())))
             if len(self.managers) == 0:
-                print('No running Docker-Services with MASS Analysis Systems found.')
+                print('No running Docker-Services with MASS-Analysis-Systems found.')
             else:
                 with Pool() as p:
                     self.managers = p.map(wrap_scale, self.managers)
-                    p.map(wrap_debug, self.managers)
+                    if Configuration.config.getboolean('Basic Properties', 'Debug'):
+                        p.map(wrap_debug, self.managers)
 
             time.sleep(Configuration.config.getint('Basic Properties', 'Scale Interval'))
 

@@ -30,15 +30,8 @@ class Manager:
         self.start_demand = Services.get_start_demand(self.id)
         if self._history is None or len(self._history) != Services.get_laziness(self.id):
             self._history = [self.start_demand] * self.laziness
-
-        if self.anal_sys in Requests.request_dict:
-            self.requests = Requests.requests_for_system(self.anal_sys)
-        else:
-            self.requests = 0
-        if self.anal_sys in Scheduled.scheduled_dict:
-            self.scheduled = Scheduled.scheduled_for_system(self.anal_sys)
-        else:
-            self.scheduled = 0
+        self.requests = Requests.requests_for_system(self.anal_sys)
+        self.scheduled = Scheduled.scheduled_for_system(self.anal_sys)
 
     def _calculate_demand(self):
         #placeholder

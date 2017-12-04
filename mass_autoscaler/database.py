@@ -1,4 +1,4 @@
-from mass_api_client.resources import AnalysisSystemInstance, ScheduledAnalysis, AnalysisRequest
+from mass_api_client.resources import AnalysisSystemInstance, ScheduledAnalysis, AnalysisRequest, AnalysisSystem
 import configparser
 
 
@@ -17,6 +17,8 @@ class Configuration:
             Configuration.config.set('Basic Properties', 'API KEY', '<api key>')
         if not Configuration.config.has_option('Basic Properties', 'Scale Interval'):
             Configuration.config.set('Basic Properties', 'Scale Interval', '30')
+        if not Configuration.config.has_option('Basic Properties', 'Debug'):
+            Configuration.config.set('Basic Properties', 'Debug', 'true')
         if not Configuration.config.has_section('Default Values'):
             Configuration.config.add_section('Default Values')
         if not Configuration.config.has_option('Default Values', 'Default Minimum'):
@@ -35,7 +37,7 @@ class Requests:
     request_dict = {}
 
     @staticmethod
-    def update_dict():
+    def update_dict(system_dict):
         Requests.request_dict = {}
         all_requests = AnalysisRequest.all()
         for request in all_requests:
@@ -43,6 +45,8 @@ class Requests:
                 Requests.request_dict[request.analysis_system] += 1
             else:
                 Requests.request_dict[request.analysis_system] = 1
+
+        Requests.request_dict = dict((system_dict[key], value) for (key, value) in Requests.request_dict.items())
 
     @staticmethod
     def requests_for_system(name):
@@ -59,7 +63,7 @@ class Scheduled:
     scheduled_dict = {}
 
     @staticmethod
-    def update_dict():
+    def update_dict(system_dict):
         Scheduled._all_scheduled_dict = {}
         Scheduled._instance_dict = {}
         Scheduled.scheduled_dict = {}
@@ -79,10 +83,12 @@ class Scheduled:
             if instance_address in Scheduled._instance_dict:
                 if Scheduled._instance_dict[instance_address] not in Scheduled.scheduled_dict:
                     Scheduled.scheduled_dict[Scheduled._instance_dict[instance_address]] = \
-                    Scheduled._all_scheduled_dict[instance_address]
+                        Scheduled._all_scheduled_dict[instance_address]
                 else:
                     Scheduled.scheduled_dict[Scheduled._instance_dict[instance_address]] += \
-                    Scheduled._all_scheduled_dict[instance_address]
+                        Scheduled._all_scheduled_dict[instance_address]
+
+        Scheduled.scheduled_dict = dict((system_dict[key], value) for (key, value) in Scheduled.scheduled_dict.items())
 
     @staticmethod
     def scheduled_for_system(name):
@@ -147,6 +153,10 @@ class Services:
 
 
 def update_database():
-    Requests.update_dict()
-    Scheduled.update_dict()
+    system_dict = {}
+    all_systems = AnalysisSystem.all()
+    for system in all_systems:
+        system_dict[system.url] = system.identifier_name
+    Requests.update_dict(system_dict)
+    Scheduled.update_dict(system_dict)
     Services.update_dict()

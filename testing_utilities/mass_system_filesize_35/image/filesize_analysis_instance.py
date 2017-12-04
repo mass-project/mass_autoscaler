@@ -24,7 +24,7 @@ if __name__ == "__main__":
     print('start')
 
     analysis_system_instance = get_or_create_analysis_system_instance(identifier='size35',
-                                                                      verbose_name= 'Size Analysis Client35',
+                                                                      verbose_name='Size Analysis Client35',
                                                                      tag_filter_exp='sample-type:filesample',
                                                                       )
     process_analyses(analysis_system_instance, size_analysis, sleep_time=7)
