@@ -1,8 +1,7 @@
 from mass_api_client import ConnectionManager
-from database import Services, Configuration, update_database
+from database import Services, Configuration
 from manager import Manager
 from multiprocessing import Pool
-import docker
 import time
 import os
 
@@ -42,16 +41,16 @@ class Autoscaler:
         server_address = os.environ.get('MASS_SERVER_ADDRESS', Configuration.config.get('Basic Properties',
                                                                                         'server address'))
         ConnectionManager().register_connection('default', api_key, server_address)
-        Services.client = docker.from_env()
-        Services.low_client = docker.APIClient()
+        Services.init_client()
 
         while 1:
-            update_database()
+            Services.update_database()
             self._create_or_kill_managers()
             if Configuration.config.getboolean('Basic Properties', 'Debug'):
                 print(time.asctime(time.localtime(time.time())))
             if len(self.managers) == 0:
-                print('No running Docker-Services with MASS-Analysis-Systems found.')
+                if Configuration.config.getboolean('Basic Properties', 'Debug'):
+                    print('No running Docker-Services with MASS-Analysis-Systems found.')
             else:
                 with Pool() as p:
                     self.managers = p.map(wrap_scale, self.managers)

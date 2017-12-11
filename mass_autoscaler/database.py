@@ -1,5 +1,7 @@
 from mass_api_client.resources import AnalysisSystemInstance, ScheduledAnalysis, AnalysisRequest, AnalysisSystem
 import configparser
+import docker
+import subprocess
 
 
 class Configuration:
@@ -27,8 +29,16 @@ class Configuration:
             Configuration.config.set('Default Values', 'Default Maximum', '15')
         if not Configuration.config.has_option('Default Values', 'Default Start Demand'):
             Configuration.config.set('Default Values',  'Default Start Demand', '3')
-        if not Configuration.config.has_option('Default Values', 'Default Laziness'):
-            Configuration.config.set('Default Values', 'Default Laziness', '20')
+        if not Configuration.config.has_option('Default Values', 'Default Calculation Technique'):
+            Configuration.config.set('Default Values', 'Default Calculation Technique', 'moving average')
+        if not Configuration.config.has_section('Moving Average Defaults'):
+            Configuration.config.add_section('Moving Average Defaults')
+        if not Configuration.config.has_option('Moving Average Defaults', 'Default sensitivity'):
+            Configuration.config.set('Moving Average Defaults', 'Default sensitivity', '15')
+        if not Configuration.config.has_section('Exponential Moving Average Defaults'):
+            Configuration.config.add_section('Exponential Moving Average Defaults')
+        if not Configuration.config.has_option('Exponential Moving Average Defaults', 'Default Weighting'):
+            Configuration.config.set('Exponential Moving Average Defaults', 'Default Weighting', '0.3')
         with open('config.ini', 'w') as configfile:
             Configuration.config.write(configfile)
 
@@ -55,8 +65,6 @@ class Requests:
         return 0
 
 
-    #creates a dict of all analyse systems and their counts of scheduled analysis
-    #offline systems are ignored
 class Scheduled:
     _all_scheduled_dict = {}
     _instance_dict = {}
@@ -99,8 +107,6 @@ class Scheduled:
 
 class Services:
     client = None
-    low_client = None
-    # service_dict: {id1: {label1: .., label2: ...} id2: label1: ..._}
     service_dict = {}
 
     @staticmethod
@@ -110,6 +116,24 @@ class Services:
     @staticmethod
     def get_replicas(service_id):
         return int(Services.service_dict[service_id]['Mode']['Replicated']['Replicas'])
+
+    @staticmethod
+    def get_calculation_technique(service_id):
+        if 'com.mass.calculation_technique' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.calculation_technique'])
+        return Configuration.config.get('Default Values', 'calculation technique')
+
+    @staticmethod
+    def get_moving_averate_sensitivity(service_id):
+        if 'com.mass.m_a_sensitivity' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.m_a_sensitivity'])
+        return Configuration.config.getint('Moving Average Defaults', 'default sensitivity')
+
+    @staticmethod
+    def get_exponential_moving_average_weighting(service_id):
+        if 'com.mass.e_m_a_weighting' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.e_m_a_sensitivity'])
+        return Configuration.config.getfloat('Exponential Moving Average Defaults', 'default weighting')
 
     @staticmethod
     def get_min_instances(service_id):
@@ -124,16 +148,18 @@ class Services:
         return Configuration.config.getint('Default Values', 'default maximum')
 
     @staticmethod
-    def get_laziness(service_id):
-        if 'com.mass.laziness' in Services.service_dict[service_id]['Labels']:
-            return int(Services.service_dict[service_id]['Labels']['com.mass.laziness'])
-        return Configuration.config.getint('Default Values', 'default laziness')
-
-    @staticmethod
     def get_start_demand(service_id):
         if 'com.mass.start_demand' in Services.service_dict[service_id]['Labels']:
             return int(Services.service_dict[service_id]['Labels']['com.mass.start_demand'])
         return Configuration.config.getint('Default Values', 'default start demand')
+
+    @staticmethod
+    def scale_service(service_id, demand):
+        try:
+            subprocess.run('docker service scale ' + str(service_id) + '=' + str(int(demand)) + ' -d=true', shell=True,
+                           check=True, stdout=subprocess.DEVNULL)
+        except subprocess.CalledProcessError:
+            print('WARNING: Cannot scale Service with ID=' + str(service_id) + '. Maybe it was removed.')
 
     @staticmethod
     def update_dict():
@@ -151,12 +177,16 @@ class Services:
                     ids.append(service_id)
         return ids
 
+    @staticmethod
+    def init_client():
+        Services.client = docker.from_env()
 
-def update_database():
-    system_dict = {}
-    all_systems = AnalysisSystem.all()
-    for system in all_systems:
-        system_dict[system.url] = system.identifier_name
-    Requests.update_dict(system_dict)
-    Scheduled.update_dict(system_dict)
-    Services.update_dict()
+    @staticmethod
+    def update_database():
+        system_dict = {}
+        all_systems = AnalysisSystem.all()
+        for system in all_systems:
+            system_dict[system.url] = system.identifier_name
+        Requests.update_dict(system_dict)
+        Scheduled.update_dict(system_dict)
+        Services.update_dict()
