@@ -1,2 +1,0 @@
-git+https://github.com/mass-project/mass_api_client.git@0.2
-docker
