@@ -4,8 +4,8 @@ import unittest
 import os
 
 
-"""class DataBaseTest(unittest.TestCase):
-
+class DataBaseTest(unittest.TestCase):
+    """
     def setUp(self):
         Services.init_client()
         dir = os.path.dirname(__file__)
@@ -57,8 +57,8 @@ import os
         service.remove()"""
 
 
-def test_if_label_is_on_service(self):
-    self.assertEqual(1, 1)
+    def test_if_label_is_on_service(self):
+        self.assertEqual(1, 1)
 
 
 
