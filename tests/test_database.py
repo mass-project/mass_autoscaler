@@ -5,7 +5,7 @@ import os
 
 
 class DataBaseTest(unittest.TestCase):
-    """
+
     def setUp(self):
         Services.init_client()
         dir = os.path.dirname(__file__)
@@ -54,13 +54,7 @@ class DataBaseTest(unittest.TestCase):
     def tearDown(self):
         service = Services.client.services.get(self.service_name)
         Services.client.images.remove(image='mass_autoscaler_testing_image', force=True)
-        service.remove()"""
-
-
-    def test_if_label_is_on_service(self):
-        self.assertEqual(1, 1)
-
-
+        service.remove()
 
 
 if __name__ == '__main__':

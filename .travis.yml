@@ -9,3 +9,5 @@ install:
 script:
   - py.test
 sudo: enabled
+services:
+  - docker
