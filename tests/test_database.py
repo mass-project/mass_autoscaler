@@ -7,7 +7,13 @@ import os
 class DataBaseTest(unittest.TestCase):
 
     def setUp(self):
+        
         Services.init_client()
+        try:
+            Services.client.swarm.init(advertise_addr="127.0.0.1")
+        except docker.errors.APIError:
+            print("WARNING: swarm init exeption: maybe the swarm is already initalized")
+            pass
         dir = os.path.dirname(__file__)
         filename = os.path.join(dir, 'testimage', 'Dockerfile')
         f = open(filename, "rb")
