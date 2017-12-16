@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import re
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 version_file = os.path.join(
     os.path.dirname(__file__),
@@ -21,5 +21,6 @@ setup(name='mass_autoscaler',
       version=version,
       license='MIT',
       url='https://github.com/mass-project/mass_autoscaler',
-      install_requires=['docker', 'mass-api-client']
+      install_requires=['docker', 'mass-api-client'],
+      packages=find_packages(),
       )
