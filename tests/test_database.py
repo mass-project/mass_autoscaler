@@ -7,12 +7,11 @@ import os
 class DataBaseTest(unittest.TestCase):
 
     def setUp(self):
-        
         Services.init_client()
         try:
             Services.client.swarm.init(advertise_addr="127.0.0.1")
         except docker.errors.APIError:
-            print("WARNING: swarm init exeption: maybe the swarm is already initalized")
+            print("WARNING: swarm init exception: maybe the swarm is already initialized")
             pass
         dir = os.path.dirname(__file__)
         filename = os.path.join(dir, 'testimage', 'Dockerfile')
@@ -22,7 +21,7 @@ class DataBaseTest(unittest.TestCase):
         self.image_name = 'mass_autoscaler_test_image'
         self.service_name = 'mass_autoscaler_test_service'
         self.replicas = 2
-        self.label = {'com.mass.anal_system': 'testsytem'}
+        self.label = {'com.mass.anal_system': 'testsystem'}
         try:
             Services.client.services.create(self.image_name, labels=self.label, name=self.service_name,
                                             mode={'Replicated': {'Replicas': self.replicas}})
@@ -34,13 +33,13 @@ class DataBaseTest(unittest.TestCase):
 
     def test_if_label_is_on_service(self):
         service = Services.client.services.get(self.service_name)
-        self.assertEqual(service.attrs['Spec']['Labels']['com.mass.anal_system'], 'testsytem')
+        self.assertEqual(service.attrs['Spec']['Labels']['com.mass.anal_system'], 'testsystem')
 
     def test_update_dict(self):
         found = False
         for key in Services.service_dict:
             if 'com.mass.anal_system' in Services.service_dict[key]['Labels']:
-                if Services.service_dict[key]['Labels']['com.mass.anal_system'] == 'testsytem':
+                if Services.service_dict[key]['Labels']['com.mass.anal_system'] == 'testsystem':
                     found = True
         self.assertTrue(found)
 
@@ -61,6 +60,7 @@ class DataBaseTest(unittest.TestCase):
         service = Services.client.services.get(self.service_name)
         Services.client.images.remove(image='mass_autoscaler_testing_image', force=True)
         service.remove()
+        Services.client.swarm.leave(force=True)
 
 
 if __name__ == '__main__':

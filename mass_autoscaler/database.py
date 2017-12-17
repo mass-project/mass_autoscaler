@@ -121,7 +121,7 @@ class Services:
     def get_calculation_technique(service_id):
         if 'com.mass.calculation_technique' in Services.service_dict[service_id]['Labels']:
             return int(Services.service_dict[service_id]['Labels']['com.mass.calculation_technique'])
-        return Configuration.config.get('Default Values', 'calculation technique')
+        return Configuration.config.get('Default Values', 'default calculation technique')
 
     @staticmethod
     def get_moving_averate_sensitivity(service_id):
