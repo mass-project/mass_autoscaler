@@ -1,5 +1,5 @@
 from mass_api_client import ConnectionManager
-from database import Services, Configuration
+from database import Services, Configuration, update_database
 from manager import Manager
 from multiprocessing import Pool
 import time
@@ -42,9 +42,10 @@ class Autoscaler:
                                                                                         'server address'))
         ConnectionManager().register_connection('default', api_key, server_address)
         Services.init_client()
-
         while 1:
-            Services.update_database()
+            time1 = time.time()
+
+            update_database()
             self._create_or_kill_managers()
             if Configuration.config.getboolean('Basic Properties', 'Debug'):
                 print(time.asctime(time.localtime(time.time())))
@@ -57,7 +58,8 @@ class Autoscaler:
                     if Configuration.config.getboolean('Basic Properties', 'Debug'):
                         p.map(wrap_debug, self.managers)
 
-            time.sleep(Configuration.config.getint('Basic Properties', 'Scale Interval'))
+            time2 = time.time()
+            time.sleep(Configuration.config.getint('Basic Properties', 'Min Scale Interval') - (time2 - time1))
 
 
 if __name__ == '__main__':

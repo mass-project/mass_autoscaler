@@ -17,10 +17,11 @@ class Configuration:
             Configuration.config.set('Basic Properties', 'Server Address', 'http://localhost:8000/api/')
         if not Configuration.config.has_option('Basic Properties', 'API KEY'):
             Configuration.config.set('Basic Properties', 'API KEY', '<api key>')
-        if not Configuration.config.has_option('Basic Properties', 'Scale Interval'):
-            Configuration.config.set('Basic Properties', 'Scale Interval', '30')
+        if not Configuration.config.has_option('Basic Properties', 'Min Scale Interval'):
+            Configuration.config.set('Basic Properties', 'Min Scale Interval', '5')
         if not Configuration.config.has_option('Basic Properties', 'Debug'):
             Configuration.config.set('Basic Properties', 'Debug', 'true')
+
         if not Configuration.config.has_section('Default Values'):
             Configuration.config.add_section('Default Values')
         if not Configuration.config.has_option('Default Values', 'Default Minimum'):
@@ -31,10 +32,18 @@ class Configuration:
             Configuration.config.set('Default Values',  'Default Start Demand', '3')
         if not Configuration.config.has_option('Default Values', 'Default Calculation Technique'):
             Configuration.config.set('Default Values', 'Default Calculation Technique', 'moving average')
+        if not Configuration.config.has_option('Default Values', 'Default Min Schedule Interval'):
+            Configuration.config.set('Default Values', 'Default Min Schedule Interval', '5')
+        if not Configuration.config.has_option('Default Values', 'Default Max Schedule Interval'):
+            Configuration.config.set('Default Values', 'Default Max Schedule Interval', '30')
+        if not Configuration.config.has_option('Default Values', 'Default Demand Delta Threshold'):
+            Configuration.config.set('Default Values', 'Default Demand Delta Threshold', '0.5')
+
         if not Configuration.config.has_section('Moving Average Defaults'):
             Configuration.config.add_section('Moving Average Defaults')
         if not Configuration.config.has_option('Moving Average Defaults', 'Default sensitivity'):
             Configuration.config.set('Moving Average Defaults', 'Default sensitivity', '15')
+
         if not Configuration.config.has_section('Exponential Moving Average Defaults'):
             Configuration.config.add_section('Exponential Moving Average Defaults')
         if not Configuration.config.has_option('Exponential Moving Average Defaults', 'Default Weighting'):
@@ -59,7 +68,7 @@ class Requests:
         Requests.request_dict = dict((system_dict[key], value) for (key, value) in Requests.request_dict.items())
 
     @staticmethod
-    def requests_for_system(name):
+    def get_requests_for_system(name):
         if name in Requests.request_dict:
             return Requests.request_dict[name]
         return 0
@@ -77,7 +86,6 @@ class Scheduled:
         Scheduled.scheduled_dict = {}
         all_scheduled = ScheduledAnalysis.all()
         all_instances = AnalysisSystemInstance.all()
-
         for scheduled in all_scheduled:
             if scheduled.analysis_system_instance in Scheduled._all_scheduled_dict:
                 Scheduled._all_scheduled_dict[scheduled.analysis_system_instance] += 1
@@ -99,7 +107,7 @@ class Scheduled:
         Scheduled.scheduled_dict = dict((system_dict[key], value) for (key, value) in Scheduled.scheduled_dict.items())
 
     @staticmethod
-    def scheduled_for_system(name):
+    def get_scheduled_for_system(name):
         if name in Scheduled.scheduled_dict:
             return Scheduled.scheduled_dict[name]
         return 0
@@ -154,6 +162,24 @@ class Services:
         return Configuration.config.getint('Default Values', 'default start demand')
 
     @staticmethod
+    def get_min_schedule_interval(service_id):
+        if 'com.mass.min_schedule_interval' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.min_schedule_interval'])
+        return Configuration.config.getint('Default Values', 'Default Min Schedule Interval')
+
+    @staticmethod
+    def get_max_schedule_interval(service_id):
+        if 'com.mass.max_schedule_interval' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.max_schedule_interval'])
+        return Configuration.config.getint('Default Values', 'Default Max Schedule Interval')
+
+    @staticmethod
+    def get_demand_delta_threshold(service_id):
+        if 'com.mass.demand_delta_threshold' in Services.service_dict[service_id]['Labels']:
+            return int(Services.service_dict[service_id]['Labels']['com.mass.demand_delta_threshold'])
+        return Configuration.config.getfloat('Default Values', 'Default Demand Delta Threshold')
+
+    @staticmethod
     def scale_service(service_id, demand):
         try:
             subprocess.run('docker service scale ' + str(service_id) + '=' + str(int(demand)) + ' -d=true', shell=True,
@@ -181,12 +207,12 @@ class Services:
     def init_client():
         Services.client = docker.from_env()
 
-    @staticmethod
-    def update_database():
-        system_dict = {}
-        all_systems = AnalysisSystem.all()
-        for system in all_systems:
-            system_dict[system.url] = system.identifier_name
-        Requests.update_dict(system_dict)
-        Scheduled.update_dict(system_dict)
-        Services.update_dict()
+
+def update_database():
+    system_dict = {}
+    all_systems = AnalysisSystem.all()
+    for system in all_systems:
+        system_dict[system.url] = system.identifier_name
+    Requests.update_dict(system_dict)
+    Scheduled.update_dict(system_dict)
+    Services.update_dict()
