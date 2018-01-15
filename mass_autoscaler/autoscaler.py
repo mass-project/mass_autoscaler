@@ -43,7 +43,6 @@ class Autoscaler:
         ConnectionManager().register_connection('default', api_key, server_address)
         Services.init_client()
         while 1:
-            time1 = time.time()
 
             update_database()
             self._create_or_kill_managers()
@@ -58,8 +57,17 @@ class Autoscaler:
                     if Configuration.config.getboolean('Basic Properties', 'Debug'):
                         p.map(wrap_debug, self.managers)
 
-            time2 = time.time()
-            time.sleep(Configuration.config.getint('Basic Properties', 'Min Scale Interval') - (time2 - time1))
+            now = time.time()
+            next_scale = Configuration.config.getint('Basic Properties', 'Base Scale Interval') + now
+            for manager in self.managers:
+                if manager.next_schedule < next_scale:
+                    next_scale = manager.next_schedule
+            min_next_scale = Configuration.config.getint('Basic Properties', 'Min Scale Interval') + now
+            if next_scale < min_next_scale:
+                next_scale = min_next_scale
+
+            if next_scale - now > 0:
+                time.sleep(next_scale - now)
 
 
 if __name__ == '__main__':

@@ -17,6 +17,8 @@ class Configuration:
             Configuration.config.set('Basic Properties', 'Server Address', 'http://localhost:8000/api/')
         if not Configuration.config.has_option('Basic Properties', 'API KEY'):
             Configuration.config.set('Basic Properties', 'API KEY', '<api key>')
+        if not Configuration.config.has_option('Basic Properties', 'Base Scale Interval'):
+            Configuration.config.set('Basic Properties', 'Base Scale Interval', '30')
         if not Configuration.config.has_option('Basic Properties', 'Min Scale Interval'):
             Configuration.config.set('Basic Properties', 'Min Scale Interval', '5')
         if not Configuration.config.has_option('Basic Properties', 'Debug'):
